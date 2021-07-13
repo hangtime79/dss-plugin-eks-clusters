@@ -8,10 +8,7 @@ class KubeCommandException(Exception):
         self.rv = rv
         
 def run_with_timeout(cmd, env=None, timeout=3, nokill=False):
-    p = subprocess.Popen(cmd,
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE,
-                         env=env)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
     waited = 0
     while waited < timeout and p.poll() is None:
         time.sleep(1)

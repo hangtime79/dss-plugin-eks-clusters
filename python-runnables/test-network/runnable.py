@@ -22,9 +22,7 @@ class MyRunnable(Runnable):
         except NameError:
             unicode = str
 
-        print(get_cluster_from_dss_cluster(self.config['clusterId']))
         cluster_data, dss_cluster_settings, _ = get_cluster_from_dss_cluster(self.config['clusterId'])
-        print("Getting Cluster Data")
 
         # the cluster is accessible via the kubeconfig
         kube_config_path = dss_cluster_settings.get_raw()['containerSettings']['executionConfigsGenericOverrides']['kubeConfigPath']
@@ -36,8 +34,6 @@ class MyRunnable(Runnable):
         if cluster_def is None:
             raise Exception("No cluster definition (starting failed?)")
         
-        print("Test Netwokr 2")
-
         result = ''
         
         host = os.environ.get('DKU_BACKEND_EXT_HOST', socket.gethostname())
@@ -46,8 +42,6 @@ class MyRunnable(Runnable):
         
         def add_to_result(result, op, cmd, out, err):
              return result + '<h5>%s</h5><div style="margin-left: 20px;"><div>Command</div><pre class="debug">%s</pre><div>Output</div><pre class="debug">%s</pre><div>Error</div><pre class="debug">%s</pre></div>' % (op, json.dumps(cmd), out, err)
-
-        print("Test Netwokr 3")
 
         try:
             # sanity check

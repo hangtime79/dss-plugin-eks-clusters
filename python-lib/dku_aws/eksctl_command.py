@@ -19,12 +19,7 @@ class EksctlCommand(object):
     def run(self):
         cmd = [self.eksctl_bin] + self.args
         logging.info('Running %s' % (' '.join(cmd)))
-        print('EKSCtl RAGO 1')
-        p = subprocess.Popen(cmd,
-                             shell=False,
-                             env=self.env,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE)
+        p = subprocess.Popen(cmd, shell=False, env=self.env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (o, e) = p.communicate()
         rv = p.wait()
         return (cmd, rv, o, e)
@@ -35,28 +30,16 @@ class EksctlCommand(object):
     def run_and_log(self):
         cmd = [self.eksctl_bin] + self.args
         logging.info('Running %s' % (' '.join(cmd)))
-        print('EKSCtl RAL 1')
-        p = subprocess.Popen(cmd,
-                             shell=False,
-                             env=self.env,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT)
+        p = subprocess.Popen(cmd, shell=False, env=self.env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         with p.stdout as s:
             for line in iter(s.readline, b''):
                 logging.info(line)
-        print('EKSCtl RAL 2')
         return p.wait()
     
     def run_and_get(self):
         cmd = [self.eksctl_bin] + self.args
         logging.info('Running %s' % (' '.join(cmd)))
-        print('EKSCtl RAG 1')
-        p = subprocess.Popen(cmd,
-                             shell=False,
-                             env=self.env,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE)
+        p = subprocess.Popen(cmd, shell=False, env=self.env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = p.communicate()
         rv = p.wait()
-        print('EKSCtl RAG 2')
         return rv, out, err
