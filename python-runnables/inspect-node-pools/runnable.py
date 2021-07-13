@@ -19,7 +19,6 @@ class MyRunnable(Runnable):
     def run(self, progress_callback):
         cluster_data, dss_cluster_settings, dss_cluster_config = get_cluster_from_dss_cluster(self.config['clusterId'])
         
-        print('Inspect Cluster - 1. Start') #Debugger
         # retrieve the actual name in the cluster's data
         if cluster_data is None:
             raise Exception("No cluster data (not started?)")
@@ -49,7 +48,6 @@ class MyRunnable(Runnable):
                 args = args + ['--region', os.environ['AWS_DEFAULT_REGION']]
 
             args = args + ['-o', 'json']
-            print('Start Cluster - 2. Create Cluster') #Debugger
 
             c = EksctlCommand(args, connection_info)
             node_groups = json.loads(c.run_and_get_output())
@@ -76,10 +74,6 @@ class MyRunnable(Runnable):
             if len(node_group_batch) == 0:
                 node_groups.append('<h5>%s</h5><div class="alert alert-error">Unable to get details</div>' % (node_group_id))
                 continue
-            
-            print('Node Group Batch Start')
-            print(node_group_batch)
-            print('Node Group Batch End')
 
             node_group = node_group_batch[0]
 
@@ -87,20 +81,6 @@ class MyRunnable(Runnable):
             
             args = ['cloudformation', 'describe-stack-resources']
             args = args + ['--stack-name', node_group_stack_name]
-
-            print('Inspect Cluster - 3. aws describe-stack-resources') #Debugger
-            
-            print('Node Group Start')
-            print(node_group)
-
-            print('Node Group End / Stack Start')
-            
-            print(node_group_stack_name)
-
-            print('Node Group Stack End / Args Start')
-
-            print(args) #Debugger
-            print('Node Group Stack End / Args End')
 
             c = AwsCommand(args, connection_info)
             node_group_dict = json.loads(c.run_and_get_output())

@@ -6,10 +6,7 @@
         "description": "Interact with Amazon Elastic Kubernetes Service clusters",
         "author": "Dataiku",
         "icon": "icon-amazon-elastic-kubernetes icon-cloud",
-        "tags": [
-            "Cloud",
-            "AWS"
-        ],
+        "tags": ["Cloud","AWS"],
         "url": "https://www.dataiku.com/dss/plugins/info/eks-clusters.html",
         "licenseInfo": "Apache Software License",
         "supportLevel": "TIER2_SUPPORT"
@@ -18,7 +15,7 @@
         {
             "name": "defParams",
             "label": "DSS Cluster-wide Instance Types Available for Use",
-            "description": "Use these parameters to restrict what Instance Types are available when building node groups. This configuration only restricts the selection of specific nodes in the lists. If a node group has built already, these parameters will not stop",
+            "description": "Use these parameters to restrict what Instance Types are available when building *NEW* node groups. This configuration only restricts the selection of specific nodes types in adding new node groups. If a node group is already created, this setting will not restrict its use.",
             "type": "SEPARATOR",
             "mandatory": false
         },
@@ -94,7 +91,7 @@
         {
             "name": "alwaysSpot",
             "label": "Always Run Node groups as Spot",
-            "description": "Making this selection will create all nodegroups as Spot instances. While these have significant cost savings ~80% to 90%, your job can be stopped if nodes are needed elsewhere in AWS. If you intend to run jobs that cannot be interrupted, do not select this option. As an alternative, select the Run As Spot option when building individual node groups to run Spot and On-Demand instances within the same cluster.",
+            "description": "Making this selection will create all NEW nodegroups as Spot instances. While Spot has significant cost savings ~80% to 90%, AWS can interrupt and recall instances at anytime. If you intend to run jobs that cannot be interrupted, do not select this option. As an alternative, select the Run As Spot option when building individual node groups to run Spot and On-Demand instances within the same cluster.",
             "type": "BOOLEAN",
             "defaultValue": false,
             "mandatory": false
