@@ -16,7 +16,7 @@ class AwsCommand(object):
         
     def run(self):
         cmd = _convert_to_string(["aws"] + self.args)
-        logging.info('Running %s' % (' '.join(cmd)))
+        logging.info('Running %s' % (' '.join(str(x) for x in cmd)))
         p = subprocess.Popen(cmd,
                              shell=False,
                              env=self.env,
@@ -32,7 +32,7 @@ class AwsCommand(object):
     
     def run_and_log(self):
         cmd = _convert_to_string(["aws"] + self.args)
-        logging.info('Running %s' % (' '.join(cmd)))
+        logging.info('Running %s' % (' '.join(str(x) for x in cmd)))
         p = subprocess.Popen(cmd,
                              shell=False,
                              env=self.env,

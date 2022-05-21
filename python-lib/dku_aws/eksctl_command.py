@@ -51,7 +51,7 @@ class EksctlCommand(object):
         return p.wait()
     
     def run_and_get(self):
-         print('Run Run_and_Get')
+        print('Run Run_and_Get')
         cmd = _convert_to_string([self.eksctl_bin] + self.args)
         logging.info('Running %s' % (' '.join(str(x) for x in cmd)))
         p = subprocess.Popen(cmd,
