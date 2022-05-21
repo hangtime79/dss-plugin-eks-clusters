@@ -19,7 +19,7 @@ class AwsCommand(object):
         cmd = ' '.join(str(x) for x in cmd)
         logging.info('Running %s' % (cmd))
         p = subprocess.Popen(cmd,
-                             shell=False,
+                             shell=True,
                              env=self.env,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE,
@@ -36,7 +36,7 @@ class AwsCommand(object):
         cmd = ' '.join(str(x) for x in cmd)
         logging.info('Running %s' % (cmd))
         p = subprocess.Popen(cmd,
-                             shell=False,
+                             shell=True,
                              env=self.env,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT,
