@@ -1,7 +1,9 @@
+from dku_utils.access import _has_not_blank_property, _convert_to_string
+
 def get_node_pool_args(node_pool):
     args = []
     if 'machineType' in node_pool:
-        args = args + ['--node-type', node_pool['machineType']]
+        args = args + ['--node-type', _convert_to_string(node_pool['machineType'])]
     if 'diskType' in node_pool:
         args = args + ['--node-volume-type', node_pool['diskType']]
     if 'diskSizeGb' in node_pool and node_pool['diskSizeGb'] > 0:
