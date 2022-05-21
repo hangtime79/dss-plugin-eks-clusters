@@ -19,7 +19,8 @@ class EksctlCommand(object):
     def run(self):
         print('Run Definition')
         cmd = _convert_to_string([self.eksctl_bin] + self.args)
-        logging.info('Running %s' % (' '.join(str(x) for x in cmd)))
+        cmd = ' '.join(str(x) for x in cmd)
+        logging.info('Running %s' % (cmd))
         p = subprocess.Popen(cmd,
                              shell=False,
                              env=self.env,
@@ -36,9 +37,8 @@ class EksctlCommand(object):
     def run_and_log(self):
         print('Run Run_and_Log')
         cmd = _convert_to_string([self.eksctl_bin] + self.args)
-        print('11')
-        logging.info('Running %s' % (' '.join(str(x) for x in cmd)))
-        print('12')
+        cmd = ' '.join(str(x) for x in cmd)
+        logging.info('Running %s' % (cmd))
         p = subprocess.Popen(cmd,
                              shell=False,
                              env=self.env,
@@ -53,7 +53,8 @@ class EksctlCommand(object):
     def run_and_get(self):
         print('Run Run_and_Get')
         cmd = _convert_to_string([self.eksctl_bin] + self.args)
-        logging.info('Running %s' % (' '.join(str(x) for x in cmd)))
+        cmd = ' '.join(str(x) for x in cmd)
+        logging.info('Running %s' % (cmd))
         p = subprocess.Popen(cmd,
                              shell=False,
                              env=self.env,
