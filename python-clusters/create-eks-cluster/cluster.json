@@ -5,10 +5,10 @@
         "icon" : "icon-puzzle-piece",
         "longDescription" : ""
     },
-    
+
     "architecture" : "KUBERNETES",
     "paramsPythonSetup": "get_instance_types.py",
-    
+
     "params": [
         {
             "name": "connectionInfo",
@@ -18,7 +18,7 @@
             "mandatory" : true
         },
         {
-            "name": "arn",
+            "name": "assumeRoleARN",
             "label": "IAM Role ARN to assume",
             "description": "Assumes an IAM role to perform cluster operations instead of the default AWS credential provider chain. If empty, uses AWS credentials defined above",
             "type": "STRING",
@@ -61,6 +61,13 @@
             "description" : "Leave empty for current default of eksctl"
         },
         {
+            "name": "installMetricsServer",
+            "label": "Install metrics server",
+            "type": "BOOLEAN",
+            "mandatory" : true,
+            "defaultValue" : true
+       },
+       {
             "name": "advanced",
             "label": "Use Advanced Configuration",
             "type": "BOOLEAN"

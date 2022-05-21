@@ -5,11 +5,10 @@ from dku_kube.autoscaler import add_autoscaler_if_needed
 from dku_kube.gpu_driver import add_gpu_driver_if_needed
 from dku_aws.eksctl_command import EksctlCommand
 from dku_aws.aws_command import AwsCommand
-from dku_aws.boto3_sts_assumerole import Boto3STSService
-from dku_utils.cluster import get_cluster_from_dss_cluster
-from dku_utils.access import _has_not_blank_property
+from dku_utils.cluster import get_cluster_from_dss_cluster, get_connection_info
+from dku_utils.config_parser import get_security_groups_arg, get_region_arg
+from dku_utils.node_pool import get_node_pool_args
 from dku_aws.boto3_command import get_dss_instance_variables
-
 
 class MyRunnable(Runnable):
     def __init__(self, project_key, config, plugin_config):
@@ -34,17 +33,10 @@ class MyRunnable(Runnable):
         # the cluster is accessible via the kubeconfig
         kube_config_path = dss_cluster_settings.get_raw()['containerSettings']['executionConfigsGenericOverrides']['kubeConfigPath']
 
-        arn  = dss_cluster_config.get('config', {}).get('arn', None)
-        info = dss_cluster_config.get('config', {}).get('connectionInfo', {})
-        if arn:
-            connection_info = Boto3STSService(arn).credentials
-            if _has_not_blank_property(info, 'region' ):
-                connection_info['region'] = info['region']
-        else:
-            connection_info = info
+        connection_info = get_connection_info(dss_cluster_config.get('config'))
         
         node_group_id = self.config.get('nodeGroupId', None)
-
+        
         spot_pool_bln = self.config.get('spotPool', None)
 
         node_labels = self.config.get('nodeLabels', None)
@@ -68,45 +60,22 @@ class MyRunnable(Runnable):
 
         if node_group_id is not None and len(node_group_id) > 0:
             args = args + ['--name', node_group_id]
+        
+        args = args + get_region_arg(connection_info)
+            
+        if dss_cluster_config['config'].get('useEcr', False):
+            args = args + ['--full-ecr-access']
+            
+        if dss_cluster_config.get('privateNetworking', False) or self.config.get('privateNetworking', None):
+            args = args + ['--node-private-networking']
+            
+        args += get_security_groups_arg(dss_cluster_config['config'])
 
         if node_labels is not None and len(node_labels) > 0:
             args = args + ['--node-labels', node_labels]            
-        
-        if _has_not_blank_property(connection_info, 'region'):
-            args = args + ['--region', connection_info['region']]
-        elif 'AWS_DEFAULT_REGION' is os.environ:
-            args = args + ['--region', os.environ['AWS_DEFAULT_REGION']]
 
-        # This does not appear to be in the configuration at this point, doing nothing    
-        if dss_cluster_config['config'].get('useEcr', False):
-            args = args + ['--full-ecr-access']
-
-
-        if networking_settings.get('privateNetworking', False) or self.config.get('privateNetworking', None):
-            args = args + ['--node-private-networking']
-            
-        
-        if len(security_groups) > 0:
-            args = args + ['--node-security-groups', ','.join(security_groups)]
-            
-            
         node_pool = self.config.get('nodePool', {})
-                      
-        instance_lst = ','.join(node_pool['machineType'])  
-        
-        if 'machineType' in node_pool:
-            args = args + ['--instance-types', instance_lst]
-        if 'diskType' in node_pool:
-            args = args + ['--node-volume-type', node_pool['diskType']]
-        if 'diskSizeGb' in node_pool and node_pool['diskSizeGb'] > 0:
-            args = args + ['--node-volume-size', str(node_pool['diskSizeGb'])]
-            
-        args = args + ['--nodes', str(node_pool.get('numNodes', 3))]
-        if node_pool.get('numNodesAutoscaling', False):
-            args = args + ['--asg-access']
-            args = args + ['--nodes-min', str(node_pool.get('minNumNodes', 2))]
-            args = args + ['--nodes-max', str(node_pool.get('maxNumNodes', 5))]       
-
+        args += get_node_pool_args(node_pool)
 
         c = EksctlCommand(args, connection_info)
         if c.run_and_log() != 0:
@@ -124,13 +93,9 @@ class MyRunnable(Runnable):
         #args = args + ['-v', '4']
         args = args + ['--cluster', cluster_id]
 
-        if _has_not_blank_property(connection_info, 'region'):
-            args = args + ['--region', connection_info['region']]
-        elif 'AWS_DEFAULT_REGION' is os.environ:
-            args = args + ['--region', os.environ['AWS_DEFAULT_REGION']]
+        args = args + get_region_arg(connection_info)
 
         args = args + ['-o', 'json']
-        
 
         c = EksctlCommand(args, connection_info)
         node_groups_str = c.run_and_get_output()
