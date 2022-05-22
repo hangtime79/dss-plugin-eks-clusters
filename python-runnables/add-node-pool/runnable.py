@@ -36,7 +36,7 @@ class MyRunnable(Runnable):
         connection_info = get_connection_info(dss_cluster_config.get('config'))
         
         node_group_id = self.config.get('nodeGroupId', None)
-       
+        
         availability_zone = get_dss_instance_variables()['availability_zone'] 
 
         args = ['create', 'nodegroup']
@@ -58,9 +58,6 @@ class MyRunnable(Runnable):
             args = args + ['--node-private-networking']
             
         args += get_security_groups_arg(dss_cluster_config['config'])
-
-        if node_labels is not None and len(node_labels) > 0:
-            args = args + ['--node-labels', node_labels]            
 
         node_pool = self.config.get('nodePool', {})
         args += get_node_pool_args(node_pool)
