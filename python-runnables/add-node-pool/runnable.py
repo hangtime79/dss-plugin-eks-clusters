@@ -44,10 +44,7 @@ class MyRunnable(Runnable):
         args = args + ['--cluster', cluster_id]
 
         # Pickup if this a Spot Instance and if so instatiate as Managed Spot 
-        if spot_pool_bln is not None and spot_pool_bln:
-            args = args + ['--managed']
-            args = args + ['--spot']
-            args = args + ['--node-zones', availability_zone]
+        args = args + ['--node-zones', availability_zone]
 
         if node_group_id is not None and len(node_group_id) > 0:
             args = args + ['--name', node_group_id]
