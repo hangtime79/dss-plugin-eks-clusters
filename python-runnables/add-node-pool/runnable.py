@@ -36,18 +36,9 @@ class MyRunnable(Runnable):
         connection_info = get_connection_info(dss_cluster_config.get('config'))
         
         node_group_id = self.config.get('nodeGroupId', None)
-        
-        spot_pool_bln = self.config.get('spotPool', None)
-
-        node_labels = self.config.get('nodeLabels', None)
-        
-        networking_settings = dss_cluster_config.get('config', {}).get('networkingSettings', {})
-
-        security_groups = networking_settings.get('securityGroups', [])
-        
+       
         availability_zone = get_dss_instance_variables()['availability_zone'] 
-    
-    
+
         args = ['create', 'nodegroup']
         args = args + ['-v', '4']
         args = args + ['--cluster', cluster_id]
