@@ -15,11 +15,11 @@ class AwsCommand(object):
             self.env['AWS_DEFAULT_REGION'] = connection_info['region']
         
     def run(self):
-        cmd = _convert_to_string([self.eksctl_bin] + self.args)
+        cmd = _convert_to_string(["aws"] + self.args)
         cmd = ' '.join(str(x) for x in cmd)
         logging.info('Running %s' % (cmd))
         p = subprocess.Popen(cmd,
-                             shell=True,
+                             shell=False,
                              env=self.env,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE,
@@ -32,11 +32,11 @@ class AwsCommand(object):
         return self.run()[2]
     
     def run_and_log(self):
-        cmd = _convert_to_string([self.eksctl_bin] + self.args)
+        cmd = _convert_to_string(["aws"] + self.args)
         cmd = ' '.join(str(x) for x in cmd)
         logging.info('Running %s' % (cmd))
         p = subprocess.Popen(cmd,
-                             shell=True,
+                             shell=False,
                              env=self.env,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT,
