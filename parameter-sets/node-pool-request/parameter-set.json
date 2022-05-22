@@ -109,9 +109,16 @@
         {
             "name": "tags",
             "label": "Tags",
-            "description": "Tags to apply on the created EC2 instances",
+            "description": "AWS tags to apply on the created EC2 instances",
             "type": "MAP",
             "mandatory" : false
+        },
+        {
+            "name": "nodeLabels",
+            "label": "Node Labels",
+            "description": "Kubernetes labels to apply to the node group. Used primarily for workload routing.",
+            "type": "MAP",
+            "mandatory": false
         }
     ]
 }

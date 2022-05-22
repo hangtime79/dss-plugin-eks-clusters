@@ -1,5 +1,3 @@
-from dku_utils.access import _has_not_blank_property, _convert_to_string
-
 def get_node_pool_args(node_pool):
     args = []
     if 'machineType' in node_pool:
@@ -19,6 +17,11 @@ def get_node_pool_args(node_pool):
     if len(tags) > 0:
         tag_list = [key + '=' + value for key, value in tags.items()]
         args = args + ['--tags', ','.join(tag_list)]
+        
+    nodeLabels = node_pool.get('nodeLabels', {})
+    if len(nodeLabels) > 0:
+        nodeLabels_list = [key + '=' + value for key, value in nodeLabels.items()]
+        args = args + ['--node-labels', ','.join(nodeLabels_list)]
 
     if node_pool.get('useSpotInstances', False):
         args = args + ['--managed', '--spot']
