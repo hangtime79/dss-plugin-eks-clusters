@@ -17,29 +17,47 @@ class EksctlCommand(object):
             self.env['AWS_DEFAULT_REGION'] = connection_info['region']
         
     def run(self):
-        cmd = [self.eksctl_bin] + self.args
-        logging.info('Running %s' % (' '.join(cmd)))
-        p = subprocess.Popen(cmd, shell=False, env=self.env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        cmd = _convert_to_string([self.eksctl_bin] + self.args)
+        cmd = ' '.join(str(x) for x in cmd)
+        logging.info('Running %s' % (cmd))
+        p = subprocess.Popen(cmd,
+                             shell=True,
+                             env=self.env,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             universal_newlines=True)
         (o, e) = p.communicate()
         rv = p.wait()
         return (cmd, rv, o, e)
-    
+
     def run_and_get_output(self):
         return self.run()[2]
     
     def run_and_log(self):
-        cmd = [self.eksctl_bin] + self.args
-        logging.info('Running %s' % (' '.join(cmd)))
-        p = subprocess.Popen(cmd, shell=False, env=self.env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        cmd = _convert_to_string([self.eksctl_bin] + self.args)
+        cmd = ' '.join(str(x) for x in cmd)
+        logging.info('Running %s' % (cmd))
+        p = subprocess.Popen(cmd,
+                             shell=True,
+                             env=self.env,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT,
+                             universal_newlines=True)
         with p.stdout as s:
-            for line in iter(s.readline, b''):
-                logging.info(line)
+            for line in iter(s.readline, ''):
+                logging.info(line.rstrip())
         return p.wait()
     
     def run_and_get(self):
-        cmd = [self.eksctl_bin] + self.args
-        logging.info('Running %s' % (' '.join(cmd)))
-        p = subprocess.Popen(cmd, shell=False, env=self.env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        cmd = _convert_to_string([self.eksctl_bin] + self.args)
+        cmd = ' '.join(str(x) for x in cmd)
+        logging.info('Running %s' % (cmd))
+        p = subprocess.Popen(cmd,
+                             shell=True,
+                             env=self.env,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             universal_newlines=True)
         out, err = p.communicate()
         rv = p.wait()
         return rv, out, err

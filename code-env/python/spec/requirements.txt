@@ -1,6 +1,7 @@
-boto3
 PyYAML
 awscli
+ipaddress==1.0.23
+boto3
 tabulate
 certifi==2021.5.30
 chardet==3.0.4

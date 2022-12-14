@@ -27,7 +27,7 @@
             "description": "Cluster (in DSS)",
             "mandatory": true
         },
-	{
+	    {
             "name": "deleteNodeGroup",
             "label": "Delete Node Group",
             "type": "BOOLEAN",

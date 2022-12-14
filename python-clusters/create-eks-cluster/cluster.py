@@ -1,15 +1,16 @@
 import os, sys, json, subprocess, time, logging, yaml
 
-
 from dataiku.cluster import Cluster
 
 from dku_aws.eksctl_command import EksctlCommand
-from dku_aws.boto3_sts_assumerole import Boto3STSService
-from dku_kube.kubeconfig import merge_or_write_config, add_authenticator_env
+from dku_kube.kubeconfig import setup_creds_env
 from dku_kube.autoscaler import add_autoscaler_if_needed
 from dku_kube.gpu_driver import add_gpu_driver_if_needed
-from dku_utils.cluster import make_overrides
-from dku_utils.access import _has_not_blank_property, _is_none_or_blank
+from dku_kube.metrics_server import install_metrics_server
+from dku_utils.cluster import make_overrides, get_connection_info
+from dku_utils.access import _is_none_or_blank
+from dku_utils.config_parser import get_security_groups_arg, get_region_arg
+from dku_utils.node_pool import get_node_pool_args
 
 class MyCluster(Cluster):
     def __init__(self, cluster_id, cluster_name, config, plugin_config, global_settings):
@@ -18,40 +19,19 @@ class MyCluster(Cluster):
         self.config = config
         self.plugin_config = plugin_config
         self.global_settings = global_settings
-        
+
     def start(self):
-
-        connection_info = self.config.get('connectionInfo', {})
-
-        # grab the ARN if it exists
-        arn = self.config.get('arn', '')
-        info = self.config.get('connectionInfo', {})
-        # If the arn exists use boto3 to assumeRole to it, otherwise use the regular connection info
-        if arn:
-            connection_info = Boto3STSService(arn).credentials
-            if _has_not_blank_property(info, 'region' ):
-                connection_info['region'] = info['region']
-        else:
-            connection_info = info
-
+        connection_info = get_connection_info(self.config)
         networking_settings = self.config["networkingSettings"]
-        
-        
 
         args = ['create', 'cluster']
         args = args + ['-v', '4']
 
         if not self.config.get('advanced'):
-            args = args + ['--managed']          
             args = args + ['--name', self.cluster_id]
-            
-            if _has_not_blank_property(connection_info, 'region'):
-                args = args + ['--region', connection_info['region']]
-            elif 'AWS_DEFAULT_REGION' is os.environ:
-                args = args + ['--region', os.environ['AWS_DEFAULT_REGION']]
-                
+            args = args + get_region_arg(connection_info)
             args = args + ['--full-ecr-access']
-                
+
             subnets = networking_settings.get('subnets', [])
             if networking_settings.get('privateNetworking', False):
                 args = args + ['--node-private-networking']
@@ -60,27 +40,11 @@ class MyCluster(Cluster):
                     args = args + ['--vpc-private-subnets', ','.join(private_subnets)]
             if len(subnets) > 0:
                 args = args + ['--vpc-public-subnets', ','.join(subnets)]
-                
-            security_groups = networking_settings.get('securityGroups', [])
-            if len(security_groups) > 0:
-                args = args + ['--node-security-groups', ','.join(security_groups)]
-                
-            node_pool = self.config.get('nodePool', {})
-                        
-            instance_lst = ','.join(node_pool['machineType'])  
 
-            if 'machineType' in node_pool:
-                args = args + ['--node-type', instance_lst]
-            if 'diskType' in node_pool:
-                args = args + ['--node-volume-type', node_pool['diskType']]
-            if 'diskSizeGb' in node_pool and node_pool['diskSizeGb'] > 0:
-                args = args + ['--node-volume-size', str(node_pool['diskSizeGb'])]
-                
-            args = args + ['--nodes', str(node_pool.get('numNodes', 3))]
-            if node_pool.get('numNodesAutoscaling', False):
-                args = args + ['--asg-access']
-                args = args + ['--nodes-min', str(node_pool.get('minNumNodes', 2))]
-                args = args + ['--nodes-max', str(node_pool.get('maxNumNodes', 5))]
+            args += get_security_groups_arg(networking_settings)
+
+            node_pool = self.config.get('nodePool', {})
+            args += get_node_pool_args(node_pool)
 
             k8s_version = self.config.get("k8sVersion", None)
             if not _is_none_or_blank(k8s_version):
@@ -98,23 +62,22 @@ class MyCluster(Cluster):
         kube_config_path = os.path.join(os.getcwd(), 'kube_config')
         args = args + ['--kubeconfig', kube_config_path]
 
+        # if a previous kubeconfig exists, it will be merged with the current configuration, possibly keeping unwanted configuration
+        # deleting it ensures a coherent configuration for the cluster
+        if os.path.isfile(kube_config_path):
+            os.remove(kube_config_path)
+
         c = EksctlCommand(args, connection_info)
         if c.run_and_log() != 0:
             raise Exception("Failed to start cluster")
 
         args = ['get', 'cluster']
         args = args + ['--name', self.cluster_id]
-        
-        if _has_not_blank_property(connection_info, 'region'):
-            args = args + ['--region', connection_info['region']]
-        elif 'AWS_DEFAULT_REGION' is os.environ:
-            args = args + ['--region', os.environ['AWS_DEFAULT_REGION']]
+        args = args + get_region_arg(connection_info)
         args = args + ['-o', 'json']
-        
-        if _has_not_blank_property(connection_info, 'accessKey') and _has_not_blank_property(connection_info, 'secretKey'):
-            creds_in_env = {'AWS_ACCESS_KEY_ID':connection_info['accessKey'], 'AWS_SECRET_ACCESS_KEY':connection_info['secretKey']}
-            add_authenticator_env(kube_config_path, creds_in_env)
-        
+
+        setup_creds_env(kube_config_path, connection_info, self.config)
+
         if not self.config.get('advanced'):
             if node_pool.get('numNodesAutoscaling', False):
                 logging.info("Nodegroup is autoscaling, ensuring autoscaler")
@@ -130,27 +93,26 @@ class MyCluster(Cluster):
                 logging.info("Nodegroup is GPU-enabled, ensuring NVIDIA GPU Drivers")
                 add_gpu_driver_if_needed(self.cluster_id, kube_config_path, connection_info)
 
+        if self.config.get('installMetricsServer'):
+            install_metrics_server(kube_config_path)
+
         c = EksctlCommand(args, connection_info)
         cluster_info = json.loads(c.run_and_get_output())[0]
-        
+
         with open(kube_config_path, "r") as f:
             kube_config = yaml.safe_load(f)
-        
+
         # collect and prepare the overrides so that DSS can know where and how to use the cluster
         overrides = make_overrides(self.config, kube_config, kube_config_path)
-
         return [overrides, {'kube_config_path':kube_config_path, 'cluster':cluster_info}]
 
     def stop(self, data):
-        connection_info = self.config.get('connectionInfo', {})
+        connection_info = get_connection_info(self.config)
 
         args = ['delete', 'cluster']
         args = args + ['-v', '4']
         args = args + ['--name', self.cluster_id]
-        if _has_not_blank_property(connection_info, 'region'):
-            args = args + ['--region', connection_info['region']]
-        elif 'AWS_DEFAULT_REGION' is os.environ:
-            args = args + ['--region', os.environ['AWS_DEFAULT_REGION']]
+        args = args + get_region_arg(connection_info)
         c = EksctlCommand(args, connection_info)
 
         if c.run_and_log() != 0:

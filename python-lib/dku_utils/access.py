@@ -1,6 +1,7 @@
 from six import text_type
-from io import StringIO, BytesIO
 from collections import Mapping, Iterable
+from six import text_type
+from io import StringIO, BytesIO
 
 def _convert_to_string(data):
     for i in range(0,len(data)):
@@ -66,3 +67,5 @@ def _merge_objects(a, b):
         return b
     else:
         return a
+    
+    

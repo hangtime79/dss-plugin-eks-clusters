@@ -6,13 +6,14 @@
         "icon" : "icon-tasks"
 
     },
+
     "defaultDefinableInline" : true,
     "defaultDefinableAtProjectLevel" : true,
     "paramsPythonSetup": "get_instance_types.py",
     "params": [
         {
             "type":"SEPARATOR",
-            "label" :"EC2 Instance Types"
+            "label" :"EC2 Instance Parameters"
         },
         {
             "name": "machineType",
@@ -34,11 +35,19 @@
             "defaultValue" : 3
         },
         {
+            "name": "useSpotInstances",
+            "label": "Use EC2 spot instances",
+            "description": "See EC2 documentation for information about spot instances: https://aws.amazon.com/ec2/spot/",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "mandatory": false
+        },
+        {
             "name": "numNodesAutoscaling",
             "label": "Enable nodes autoscaling",
             "type": "BOOLEAN",
             "mandatory" : true,
-            "defaultValue" : true
+            "defaultValue" : false
         },
         {
             "name": "minNumNodes",
@@ -78,14 +87,13 @@
         {
             "name": "diskSizeGb",
             "label": "Disk size",
-            "description": "Disk size for the nodes in GB. Leave 0 for default (20 GB)",
+            "description": "Disk size for the nodes in GB.",
             "type": "INT",
-            "minI": 5,
+            "minI": 20,
             "maxI": 10000,
             "defaultValue": 20,
             "mandatory" : false
         },
-
         {
             "type":"SEPARATOR",
             "label" :"GPU Options",
@@ -97,6 +105,20 @@
             "description": "Enable GPU workloads on the cluster",
             "type": "BOOLEAN",
             "defaultValue": false
+        },
+        {
+            "name": "tags",
+            "label": "Tags",
+            "description": "AWS tags to apply on the created EC2 instances",
+            "type": "MAP",
+            "mandatory" : false
+        },
+        {
+            "name": "nodeLabels",
+            "label": "Node Labels",
+            "description": "Kubernetes labels to apply to the node group. Used primarily for workload routing.",
+            "type": "MAP",
+            "mandatory": false
         }
     ]
 }

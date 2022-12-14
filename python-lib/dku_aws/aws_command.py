@@ -16,20 +16,32 @@ class AwsCommand(object):
         
     def run(self):
         cmd = _convert_to_string(["aws"] + self.args)
-        logging.info('Running %s' % (' '.join(cmd)))
-        p = subprocess.Popen(cmd, shell=False, env=self.env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        cmd = ' '.join(str(x) for x in cmd)
+        logging.info('Running %s' % (cmd))
+        p = subprocess.Popen(cmd,
+                             shell=True,
+                             env=self.env,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             universal_newlines=True)
         (o, e) = p.communicate()
         rv = p.wait()
         return (cmd, rv, o, e)
-    
+
     def run_and_get_output(self):
         return self.run()[2]
     
     def run_and_log(self):
         cmd = _convert_to_string(["aws"] + self.args)
-        logging.info('Running %s' % (' '.join(cmd)))
-        p = subprocess.Popen(cmd, shell=False, env=self.env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        cmd = ' '.join(str(x) for x in cmd)
+        logging.info('Running %s' % (cmd))
+        p = subprocess.Popen(cmd,
+                             shell=True,
+                             env=self.env,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT,
+                             universal_newlines=True)
         with p.stdout as s:
-            for line in iter(s.readline, b''):
+            for line in iter(s.readline, ''):
                 logging.info(line)
         return p.wait()

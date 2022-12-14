@@ -16,12 +16,6 @@ class MyRunnable(Runnable):
         return None
 
     def run(self, progress_callback):
-        
-        try:
-            unicode('')
-        except NameError:
-            unicode = str
-
         cluster_data, dss_cluster_settings, _ = get_cluster_from_dss_cluster(self.config['clusterId'])
 
         # the cluster is accessible via the kubeconfig
